@@ -69,9 +69,9 @@ struct RickAndMortyView: View {
             .toolbar{
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        AnalyticsService.shared.simulateMemoryLeak()
+                        AnalyticsService.shared.simulateHang()
                     }, label: {
-                        Image(systemName: "memorychip.fill")
+                        Image(systemName: "tortoise.fill")
                     })
                 }
                 ToolbarItem{

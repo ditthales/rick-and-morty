@@ -187,44 +187,23 @@ class AnalyticsService {
 //        //constants! que bad
 //    }
     
-    // MARK: - Método para simular memory leak (fins didáticos - Instruments)
-    public func simulateMemoryLeak() {
-        print("🧠 Criando memory leak proposital para demonstração no Instruments...")
+    // MARK: - Método para simular hang (fins didáticos - Instruments)
+    public func simulateHang() {
+        print("🐢 Iniciando hang proposital para demonstração no Instruments...")
         
-        // Cria leaks verdadeiros - objetos que não podem ser alcançados
-        for i in 0..<100 {
-            let leakyObject = LeakyObject(id: i)
-            let anotherLeaky = LeakyObject(id: i + 1000)
-            
-            // Cria referências circulares SEM manter referência no AnalyticsService
-            leakyObject.parent = anotherLeaky
-            anotherLeaky.parent = leakyObject
-            
-            // Aloca dados grandes
-            leakyObject.bigData = Array(repeating: String(repeating: "leak\(i)", count: 500), count: 50)
-            anotherLeaky.bigData = Array(repeating: String(repeating: "leak\(i+1000)", count: 500), count: 50)
-            
-            // IMPORTANTE: NÃO salvamos referência para esses objetos
-            // Eles ficam órfãos na memória = LEAK VERDADEIRO
+        // Bloqueia a main thread por 3 segundos
+        Thread.sleep(forTimeInterval: 3.0)
+        
+        // Processamento intensivo adicional por 2 segundos
+        let startTime = Date()
+        var counter = 0
+        while Date().timeIntervalSince(startTime) < 2.0 {
+            // Operações matemáticas intensivas para simular processamento pesado
+            counter += Int.random(in: 1...1000)
+            _ = sqrt(Double(counter))
         }
         
-        // Também cria alguns objetos que "escapam" usando closures
-        createClosureLeak()
-        
-        print("🧠 Memory leak criado! Objetos órfãos na memória (detectáveis pelo Leaks)")
-    }
-    
-    private func createClosureLeak() {
-        // Cria leak usando closures com retain cycles
-        for i in 0..<50 {
-            let leaky = LeakyObject(id: i + 2000)
-            leaky.bigData = Array(repeating: "closure_leak_\(i)", count: 1000)
-            
-            // Closure que captura self fortemente, criando cycle
-            leaky.onComplete = { [leaky] in  // Captura forte proposital
-                print("Leak \(leaky.id) nunca será chamado")
-            }
-        }
+        print("🐢 Hang finalizado! Total: \(counter)")
     }
     
     public func log (event: AnalyticsEvent) {
@@ -310,21 +289,4 @@ class AnalyticsService {
         
         }
     
-}
-
-// MARK: - Classe auxiliar para demonstrar memory leak
-class LeakyObject {
-    let id: Int
-    var parent: LeakyObject?
-    var bigData: [String] = []
-    var onComplete: (() -> Void)? // Closure que criará retain cycle
-    
-    init(id: Int) {
-        self.id = id
-        print("📦 LeakyObject \(id) criado")
-    }
-    
-    deinit {
-        print("♻️ LeakyObject \(id) liberado") // Este print nunca será chamado devido ao leak
-    }
 }
